@@ -1,33 +1,44 @@
-import React, {useState, useEffect} from 'react';
-import logo from './logo.svg';
-import QRCode, { displayName } from 'qrcode.react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faWallet, faPlus } from '@fortawesome/free-solid-svg-icons';
-import {fetchCardsOf, getBalance} from './api/UseCaver';
+import React, { useState, useEffect } from "react";
+import logo from "./logo.svg";
+import QRCode from "qrcode.react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHome, faWallet, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { getBalance, readCount, setCount, fetchCardsOf } from "./api/UseCaver";
 import * as KlipAPI from "./api/UseKlip";
 import "bootstrap/dist/css/bootstrap.min.css";
-import './App.css';
-import './market.css';
-import { Alert, Container, Card, Nav, Form, Button, Modal, Row, Col } from "react-bootstrap"
+import "./App.css";
+import "./market.css";
+import {
+  Alert,
+  Container,
+  Card,
+  Nav,
+  Form,
+  Button,
+  Modal,
+  Row,
+  Col,
+} from "react-bootstrap";
 import { MARKET_CONTRACT_ADDRESS } from './constrants/constants.cypress';
 
-const DEFAULT_OR_CODE = "DEFAULT";
+function onPressButton(balance) {
+  console.log("hi");
+}
+const onPressButton2 = (_balance, _setBalance) => {
+  _setBalance(_balance);
+};
+const DEFAULT_QR_CODE = "DEFAULT";
 const DEFAULT_ADDRESS = "0x00000000000000000000000000000";
-
 function App() {
-  // nft는 사진정보담는, 내 밸런스는 내 돈, 내 주소는 지갑주소
   const [nfts, setNfts] = useState([]); // {id: '101', uri: ''}
-  const [myBalance, setMyBalance] = useState('0');
-  const [myAddress, setMyAddress] = useState(DEFAULT_ADDRESS);
-
+  const [myBalance, setMyBalance] = useState("0");
+  const [myAddress, setMyAddress] = useState("0x00000000000000000000000000000");
 
   // UI
-  const [qrvalue, setQrvalue] = useState(DEFAULT_OR_CODE);
+  const [qrvalue, setQrvalue] = useState(DEFAULT_QR_CODE);
   const [tab, setTab] = useState("MARKET"); // MARKET, MINT, WALLET
   const [mintImageUrl, setMintImageUrl] = useState("");
-
-  
-  //Modal
+  // Modal
 
   const [showModal, setShowModal] = useState(false);
   const [modalProps, setModalProps] = useState({
@@ -35,14 +46,11 @@ function App() {
     onConfirm: () => {},
   });
   const rows = nfts.slice(nfts.length / 2);
-  
-
-  // 아래부터 함수
   const fetchMarketNFTs = async () => {
     const _nfts = await fetchCardsOf(MARKET_CONTRACT_ADDRESS);
     setNfts(_nfts);
   };
-  
+
   const fetchMyNFTs = async () => {
     if (myAddress === DEFAULT_ADDRESS) {
       alert("NO ADDRESS");
@@ -51,7 +59,7 @@ function App() {
     const _nfts = await fetchCardsOf(myAddress);
     setNfts(_nfts);
   };
-  
+
   const onClickMint = async (uri) => {
     if (myAddress === DEFAULT_ADDRESS) {
       alert("NO ADDRESS");
@@ -118,32 +126,35 @@ function App() {
     getUserData();
     fetchMarketNFTs();
   }, []);
-
   return (
     <div className="App">
       <div className="text-center" style={{marginTop: 40}}>
        <img src="img/NFT MARKET.png" />
       </div>
-      <div style={{ backgroundColor: "black", padding: 10}}>
+      <div style={{ backgroundColor: "black", padding: 10 }}>
+        {/* 주소 잔고 */}
+        <div
+          style={{
+            fontSize: 15,
+            fontWeight: "bold",
+            paddingLeft: 5,
+            marginTop: 10,
+            border:"1px solid white"
+          }}
+        >
+          내 지갑 : ${myAddress}
+        </div>
         
         <br />
-        <Alert 
+        <br />
+        <Alert
           onClick={getUserData}
           variant={"balance"}
-          style={{ backgroundColor: "#f40075", fontSize: 25}}
+          style={{ backgroundColor: "#f40075", fontSize: 25, cursor:'pointer' }}
         >
-          <div
-          style={{
-            fontSize: 25,
-            fontWeight: "bold",
-            paddingRight: 10,
-            display: 'inline',
-          }}
-        >내 지갑 주소 : </div> <span style={{fontSize:20}}>  ${myAddress} </span> 
-         
-          <span style={{marginLeft: 1000, border: '2px solid white', padding: 5, cursor: 'pointer'}}>{myAddress !== DEFAULT_ADDRESS
-          ? `${myBalance} KLAY`
-          : "지갑 연동하기"}</span>
+          {myAddress !== DEFAULT_ADDRESS
+            ? `${myBalance} KLAY`
+            : "지갑 연동하기"}
         </Alert>
         {qrvalue !== "DEFAULT" ? (
           <Container
@@ -160,10 +171,9 @@ function App() {
             <br />
           </Container>
         ) : null}
-        
 
-       {/* 갤러리(마켓, 내 지갑) */}
-       {tab === "MARKET" || tab === "WALLET" ? (
+        {/* 갤러리(마켓, 내 지갑) */}
+        {tab === "MARKET" || tab === "WALLET" ? (
           <div className="container" style={{ padding: 0, width: "100%" }}>
             {rows.map((o, rowIndex) => (
               <Row key={`rowkey${rowIndex}`}>
@@ -242,9 +252,7 @@ function App() {
       <br />
       <br />
       <br />
-       
       {/* 모달 */}
-
       <Modal
         centered
         size="sm"
